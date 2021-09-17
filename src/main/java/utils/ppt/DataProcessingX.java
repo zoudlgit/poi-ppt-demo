@@ -103,7 +103,7 @@ public class DataProcessingX {
         System.out.println("文字动画效果："+animationMap.get(textBox.getShapeName()));
     }
     public static void pictureProcessX(XSLFShape shape,double pageWidthProportion,double pageHeightProportion,int i,
-                                       Map<String,String> animationMap,Map<String,String> mp4Map) {
+                                       Map<String,String> animationMap,Map<String,String> mp4Map,Map<String,String> mp3Map) {
         XSLFPictureShape pictureShape = (XSLFPictureShape) shape;
         if(mp4Map.get(pictureShape.getShapeName()) != null){
             System.out.println("-------------视频处理-------------");
@@ -118,6 +118,19 @@ public class DataProcessingX {
             System.out.println("视频样式："+css);
             System.out.println("视频地址："+"data/"+pictureShape.getShapeName()+".mp4");
             System.out.println("视频动画效果："+animationMap.get(pictureShape.getShapeName()));
+        } else if(mp3Map.get(pictureShape.getShapeName()) != null){
+            System.out.println("-------------音频处理-------------");
+            Map<String,String> pictureMap = new HashMap();
+            pictureMap.put("width",pictureShape.getAnchor().getWidth()/pageWidthProportion +"px");
+            pictureMap.put("height",pictureShape.getAnchor().getHeight()/pageHeightProportion +"px");
+            pictureMap.put("left",pictureShape.getAnchor().getMinX()/pageWidthProportion +"px");
+            pictureMap.put("top",pictureShape.getAnchor().getMinY()/pageHeightProportion +"px");
+            pictureMap.put("rorateX",(pictureShape.getAnchor().getX())  + "px");
+            pictureMap.put("rorateY",(pictureShape.getAnchor().getY()) + "px");
+            String css =JSON.toJSONString(pictureMap);
+            System.out.println("音频样式："+css);
+            System.out.println("音频地址："+"data/"+pictureShape.getShapeName()+".mp3");
+            System.out.println("音频动画效果："+animationMap.get(pictureShape.getShapeName()));
         } else {
             System.out.println("-------------图片处理-------------");
             ByteArrayInputStream bais = new ByteArrayInputStream(pictureShape.getPictureData().getData());

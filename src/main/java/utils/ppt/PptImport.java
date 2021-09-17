@@ -26,7 +26,7 @@ import static utils.ppt.DataProcessingX.*;
 public class PptImport {
     final static String url = "data/test.pptx";
     //获取动画效果
-    private static void getAnimation(Map<String,String> animationMap,Map<String,String> mp4Map) throws Exception {
+    private static void getAnimation(Map<String,String> animationMap,Map<String,String> mp4Map,Map<String,String> mp3Map) throws Exception {
         final Map<Long,String> idText = new HashMap<Long,String>();
         Presentation presentation = new Presentation();
         presentation.loadFromFile(url);
@@ -37,9 +37,16 @@ public class PptImport {
                 if ((shape instanceof IVideo)) {
                     IVideo video = (IVideo) shape;
                     try {
-                        File folder = new File("data");
                         video.getEmbeddedVideoData().saveToFile("data/"+video.getName()+ ".mp4");
                         mp4Map.put(video.getName(),"data/"+video.getName()+ ".mp4");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else if ((shape instanceof IAudio)) {
+                    IAudio audio = (IAudio) shape;
+                    try {
+                        audio.getData().saveToFile("data/"+audio.getName()+ ".mp3");
+                        mp3Map.put(audio.getName(),"data/"+audio.getName()+ ".mp3");
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -108,7 +115,7 @@ public class PptImport {
             }
         }
     }
-    private static void getElement(Map<String,String> animationMap,Map<String,String> mp4Map) throws IOException {
+    private static void getElement(Map<String,String> animationMap,Map<String,String> mp4Map,Map<String,String> mp3Map) throws IOException {
         FileInputStream fis = new FileInputStream(url);
         if("ppt".equals(url.substring(url.lastIndexOf(".")+1))){
             //实例化ppt
@@ -141,7 +148,7 @@ public class PptImport {
                 // 循环页内所有元素
                 for (int f = 0; f < shapes.size(); f++) {
                     XSLFShape shape = shapes.get(f);
-                    processingDataX(shape,pageWidthProportion,pageHeightProportion,f*i,animationMap,mp4Map);
+                    processingDataX(shape,pageWidthProportion,pageHeightProportion,f*i,animationMap,mp4Map,mp3Map);
                 }
             }
         } else {
@@ -170,7 +177,7 @@ public class PptImport {
         }
     }
     private static void processingDataX(XSLFShape shape,double pageWidthProportion,double pageHeightProportion,int count
-            ,Map<String,String> animationMap,Map<String,String> mp4Map) {
+            ,Map<String,String> animationMap,Map<String,String> mp4Map,Map<String,String> mp3Map) {
         if (shape instanceof XSLFTextBox) {
             // 文字
             textProcessX(shape,pageWidthProportion,pageHeightProportion,count,animationMap);
@@ -179,13 +186,13 @@ public class PptImport {
             autoShapeProcessX(shape,pageWidthProportion,pageHeightProportion,count,animationMap);
         } else if (shape instanceof XSLFPictureShape) {
             // 图片
-            pictureProcessX(shape,pageWidthProportion,pageHeightProportion,count,animationMap,mp4Map);
+            pictureProcessX(shape,pageWidthProportion,pageHeightProportion,count,animationMap,mp4Map,mp3Map);
         } else if (shape instanceof XSLFGroupShape) {
             System.out.println("--组合图形--");
             XSLFGroupShape groupShape = (XSLFGroupShape) shape;
             for(XSLFShape xslfShape:groupShape.getShapes()){
                 if(xslfShape != null){
-                    processingDataX(xslfShape,pageWidthProportion,pageHeightProportion,count,animationMap,mp4Map);
+                    processingDataX(xslfShape,pageWidthProportion,pageHeightProportion,count,animationMap,mp4Map,mp3Map);
                 }
             }
         }
@@ -194,7 +201,8 @@ public class PptImport {
     public static void main(String[] args) throws Exception {
         Map<String,String> animationMap = new HashMap<String, String>();
         Map<String,String> mp4Map = new HashMap<String, String>();
-        getAnimation(animationMap,mp4Map);
-        getElement(animationMap,mp4Map);
+        Map<String,String> mp3Map = new HashMap<String, String>();
+        getAnimation(animationMap,mp4Map,mp3Map);
+        getElement(animationMap,mp4Map,mp3Map);
     }
 }
