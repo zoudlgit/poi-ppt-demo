@@ -5,7 +5,7 @@
 还有Spire.Presentation for Java 付费插件用到了保存视频和读取动画效果两个功能
 官网：https://www.e-iceblue.cn/spirepresentationforjava/spire-presentation-for-java-program-guide-content-html.html
 记录踩坑
-1.maven下载spire.presentation包不稳定，我把它放到了私有依赖库
+1.maven下载spire.presentation包不稳定，我把它放到了私有依赖库  
 2.因为ppt的页面大小和网页的大小可能不一样,会导致位置不对,所以要先获取比例
 3.尽量输出png格式图片，镂空图片还没解决
 4.ppt和pptx是两套处理逻辑
