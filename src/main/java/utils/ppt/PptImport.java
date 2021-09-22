@@ -8,7 +8,10 @@ import com.spire.presentation.drawing.animation.ParagraphBuildType;
 import org.apache.poi.hslf.usermodel.*;
 import org.apache.poi.xslf.usermodel.*;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -16,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static utils.ppt.CommonUtil.getColor;
 import static utils.ppt.DataProcessing.*;
 import static utils.ppt.DataProcessingX.*;
 
@@ -26,12 +30,16 @@ import static utils.ppt.DataProcessingX.*;
 public class PptImport {
     final static String url = "data/test.pptx";
     //获取动画效果
-    private static void getAnimation(Map<String,String> animationMap,Map<String,String> mp4Map,Map<String,String> mp3Map) throws Exception {
+    private static void getAnimation(Map<String,String> animationMap,Map<String,String> mp4Map,Map<String,String> mp3Map
+            ,Map<Integer,byte[]> bgImageMap) throws Exception {
         final Map<Long,String> idText = new HashMap<Long,String>();
         Presentation presentation = new Presentation();
         presentation.loadFromFile(url);
         for (int c = 0; c < presentation.getSlides().getCount(); c++) {
             ISlide slide = presentation.getSlides().get(c);
+            if(slide.getSlideBackground().getFill().getPictureFill().getPicture().getEmbedImage() != null){
+                bgImageMap.put(c,slide.getSlideBackground().getFill().getPictureFill().getPicture().getEmbedImage().getData());
+            }
             for(int i = 0; i< slide.getShapes().getCount(); i++) {
                 IShape shape = slide.getShapes().get(i);
                 if ((shape instanceof IVideo)) {
@@ -115,7 +123,8 @@ public class PptImport {
             }
         }
     }
-    private static void getElement(Map<String,String> animationMap,Map<String,String> mp4Map,Map<String,String> mp3Map) throws IOException {
+    private static void getElement(Map<String,String> animationMap,Map<String,String> mp4Map,Map<String,String> mp3Map,
+                                   Map<Integer,byte[]> bgImageMap) throws IOException {
         FileInputStream fis = new FileInputStream(url);
         if("ppt".equals(url.substring(url.lastIndexOf(".")+1))){
             //实例化ppt
@@ -127,6 +136,24 @@ public class PptImport {
             for (int i = 0; i < ppt.getSlides().size(); i++) {
                 System.out.println("-----第"+i+"页-----");
                 HSLFSlide slide = ppt.getSlides().get(i);
+                //fillType: 0.颜色, 1.图片
+                if(slide.getBackground().getFill().getFillType() == 3){
+                    ByteArrayInputStream bais = new ByteArrayInputStream(slide.getBackground().getFill().getPictureData().getData());
+                    BufferedImage bi1 = null;
+                    try {
+                        bi1 = ImageIO.read(bais);
+                        File w2 = new File("data/background"+i+".png");//可以是jpg,png,gif格式
+                        ImageIO.write(bi1, "png", w2);//不管输出什么格式图片，此处不需改动
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.out.println("path");
+                    }
+                    System.out.println("背景图片");
+                } else if (slide.getBackground().getFill().getFillType() == 0){
+                    String[] strings = slide.getBackground().getFill().getForegroundColor().toString().split(",");
+                    String color = getColor(strings);
+                    System.out.println("背景颜色："+color);
+                }
                 List<HSLFShape> shapes = slide.getShapes();
                 // 循环页内所有元素
                 for (int f = 0; f < shapes.size(); f++) {
@@ -144,6 +171,24 @@ public class PptImport {
             for (int i = 0; i < ppt.getSlides().size(); i++) {
                 System.out.println("-----第"+i+"页-----");
                 XSLFSlide slide = ppt.getSlides().get(i);
+                //fillType: 0.颜色, 1.图片
+                if(slide.getBackground().getFillColor() == null){
+                    ByteArrayInputStream bais = new ByteArrayInputStream(bgImageMap.get(i));
+                    BufferedImage bi1 = null;
+                    try {
+                        bi1 = ImageIO.read(bais);
+                        File w2 = new File("data/background"+i+".png");//可以是jpg,png,gif格式
+                        ImageIO.write(bi1, "png", w2);//不管输出什么格式图片，此处不需改动
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.out.println("path");
+                    }
+                    System.out.println("背景图片");
+                } else {
+                    String[] strings = slide.getBackground().getFillColor().toString().split(",");
+                    String color = getColor(strings);
+                    System.out.println("背景颜色："+color);
+                }
                 List<XSLFShape> shapes = slide.getShapes();
                 // 循环页内所有元素
                 for (int f = 0; f < shapes.size(); f++) {
@@ -202,7 +247,8 @@ public class PptImport {
         Map<String,String> animationMap = new HashMap<String, String>();
         Map<String,String> mp4Map = new HashMap<String, String>();
         Map<String,String> mp3Map = new HashMap<String, String>();
-        getAnimation(animationMap,mp4Map,mp3Map);
-        getElement(animationMap,mp4Map,mp3Map);
+        Map<Integer,byte[]> bgImageMap = new HashMap<Integer, byte[]>();
+        getAnimation(animationMap,mp4Map,mp3Map,bgImageMap);
+        getElement(animationMap,mp4Map,mp3Map,bgImageMap);
     }
 }
